@@ -37,14 +37,6 @@ class JWSTCatalog(Plotter):
     def eflux(self, band):
         return self.catalog[f'eflux_jy_{band.lower()}']
 
-    def plot_position(self, ax=None, **kwargs):
-        if ax is None:
-            ax = plt.gca()
-        ax.scatter(self.ra, self.dec, **kwargs)
-        ax.set_xlabel('Right Ascension')
-        ax.set_ylabel('Declination')
-        return ax
-
     def plot_band_histogram(self, band, min=None, max=None, num=50, ax=None, **kwargs):
         if ax is None:
             ax = plt.gca()

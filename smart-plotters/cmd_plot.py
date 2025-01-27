@@ -49,3 +49,11 @@ class Plotter:
         ax.set_ylabel(f'[{band3.upper()}] - [{band4.upper()}]')
         plt.colorbar(im, ax=ax, label=f'[{band5.upper()}] - [{band6.upper()}]')
         return ax
+
+    def plot_position(self, ax=None, **kwargs):
+        if ax is None:
+            ax = plt.gca()
+        ax.scatter(self.ra, self.dec, **kwargs)
+        ax.set_xlabel('Right Ascension')
+        ax.set_ylabel('Declination')
+        return ax
