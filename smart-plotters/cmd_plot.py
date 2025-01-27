@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 class Plotter:
     def __init__(self):
@@ -57,3 +58,16 @@ class Plotter:
         ax.set_xlabel('Right Ascension')
         ax.set_ylabel('Declination')
         return ax
+
+    def plot_contour_CCD(self, band1, band2, band3, band4, ax=None, bins=100, threshold=5, cmap='autumn_r', color='k', s=1):
+        import mpl_plot_templates as template
+        x = np.array(self.color(band1, band2))
+        #x[x>5] = np.nan
+        y = np.array(self.color(band3, band4))
+        #y[y>5] = np.nan
+        if ax is None:
+            ax = plt.subplot()
+        
+        template.adaptive_param_plot(x, y, threshold=threshold, bins=bins, cmap=cmap, marker_color=color, markersize=s, axis=ax)
+        plt.xlabel(f'[{band1.upper()}] - [{band2.upper()}]')
+        plt.ylabel(f'[{band3.upper()}] - [{band4.upper()}]')
