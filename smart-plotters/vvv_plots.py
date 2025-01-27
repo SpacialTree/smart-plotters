@@ -28,5 +28,4 @@ class VVVCatalog(Plotter):
         return self.catalog[f'{band}1ap1']
 
     def color(self, band1, band2):
-        print('why')
         return self.band(band1) - self.band(band2)
