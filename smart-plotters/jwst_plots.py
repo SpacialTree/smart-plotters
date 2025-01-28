@@ -97,16 +97,6 @@ class JWSTCatalog(Plotter):
         mask = mask.max(axis=0)
         return mask
 
-    def get_region_mask(self, reg, wcs):
-        mask = np.zeros(len(self.catalog), dtype=bool)
-        for r in reg:
-            mask += r.contains(self.coords, wcs=wcs)
-        return mask
-
-    def table_region_mask(self, reg, wcs):
-        mask = self.get_region_mask(reg, wcs)
-        return self.catalog[mask]
-
     def apply_mask(self, mask):
         return self.catalog[mask]
 
