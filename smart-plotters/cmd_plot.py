@@ -75,8 +75,8 @@ class Plotter:
             ax = plt.subplot()
         
         template.adaptive_param_plot(x, y, threshold=threshold, bins=bins, cmap=cmap, marker_color=color, markersize=s, axis=ax)
-        plt.xlabel(f'[{band1.upper()}] - [{band2.upper()}]')
-        plt.ylabel(f'[{band3.upper()}] - [{band4.upper()}]')
+        ax.set_xlabel(f'[{band1.upper()}] - [{band2.upper()}]')
+        ax.set_ylabel(f'[{band3.upper()}] - [{band4.upper()}]')
 
     def get_region_mask(self, reg, wcs):
         mask = np.zeros(len(self.catalog), dtype=bool)
