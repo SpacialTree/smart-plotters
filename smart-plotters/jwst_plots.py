@@ -77,7 +77,7 @@ class JWSTCatalog(Plotter):
         bands = self.get_band_names()
         #[colname[-5:] for colname in self.catalog.colnames if colname.startswith(f'qfit_')]
         #mask = np.array([np.logical_or(np.array(self.catalog[f'qfit_{band}']) < qf, np.isnan(np.array(self.catalog[f'mag_ab_{band}']))) for band in bands])
-        mask = np.logical_or.reduce([np.logical_or(np.array(self.catalog[f'qfit_{band}']) < qf, np.isnan(np.array(self.catalog[f'mag_ab_{band}']))) for band in bands])
+        mask = np.logical_and.reduce([np.logical_or(np.array(self.catalog[f'qfit_{band}']) < qf, np.isnan(np.array(self.catalog[f'mag_ab_{band}']))) for band in bands])
 
         return mask
     
