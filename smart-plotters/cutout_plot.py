@@ -40,7 +40,7 @@ class Cutout:
 
     def get_cutout_region(self, frame='icrs'):
         if frame == 'galactic':
-            return regions.RectangleSkyRegion(center=self.position.galactic, width=self.l, height=self.w)
+            return regions.RectangleSkyRegion(center=self.position.galactic, width=self.w, height=self.l)
         elif frame == 'icrs':
             return regions.RectangleSkyRegion(center=self.position.icrs, width=self.l, height=self.w)
         else:
