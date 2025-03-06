@@ -46,7 +46,10 @@ class Cutout:
         else:
             raise ValueError('frame must be either "icrs" or "galactic"')
 
-    def get_cutout_rgb(self, red_fn, green_fn, blue_fn, format='fits', rmax=90, gmax=210, bmax=120):
+    def get_cutout_rgb(self, red_fn, green_fn, blue_fn, format='fits', 
+                       rstretch='asinh', gstretch='asinh', bstretch='asinh',
+                       rmin=0, gmin=0, bmin=0,
+                       rmax=90, gmax=210, bmax=120):
         red_cutout = self.blind_cutout(red_fn)
         green_cutout = self.blind_cutout(green_fn)
         blue_cutout = self.blind_cutout(blue_fn)
@@ -73,9 +76,9 @@ class Cutout:
         ]).swapaxes(0,2).swapaxes(0,1)
 
         rgb_scaled = np.array([
-                simple_norm(rgb[:,:,0], stretch='asinh', vmin=0, vmax=rmax)(rgb[:,:,0]),
-                simple_norm(rgb[:,:,1], stretch='asinh', vmin=0, vmax=gmax)(rgb[:,:,1]),
-                simple_norm(rgb[:,:,2], stretch='asinh', vmin=0, vmax=bmax)(rgb[:,:,2]),
+                simple_norm(rgb[:,:,0], stretch=rstretch, vmin=rmin, vmax=rmax)(rgb[:,:,0]),
+                simple_norm(rgb[:,:,1], stretch=gstretch, vmin=gmin, vmax=gmax)(rgb[:,:,1]),
+                simple_norm(rgb[:,:,2], stretch=bstretch, vmin=bmin, vmax=bmax)(rgb[:,:,2]),
             ]).swapaxes(0,2).swapaxes(0,1)
 
         return rgb_scaled, ww
