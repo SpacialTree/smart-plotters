@@ -31,11 +31,11 @@ class Cutout:
         cutout = Cutout2D(data, position=self.position, size=size, wcs=ww)
         return cutout
 
-    def blind_cutout(self, filename, position):
+    def blind_cutout(self, filename):
         try:
-            cutout = self.get_cutout(filename, position)
+            cutout = self.get_cutout(filename)
         except: 
-            cutout = self.get_cutout(filename, position, format='casa')
+            cutout = self.get_cutout(filename, format='casa')
         return cutout
 
     def get_cutout_region(self, frame='icrs'):
@@ -47,9 +47,9 @@ class Cutout:
             raise ValueError('frame must be either "icrs" or "galactic"')
 
     def get_cutout_rgb(self, red_fn, green_fn, blue_fn, format='fits', rmax=90, gmax=210, bmax=120):
-        red_cutout = self.blind_cutout(red_fn, position, l, w)
-        green_cutout = self.blind_cutout(green_fn, position, l, w)
-        blue_cutout = self.blind_cutout(blue_fn, position, l, w)
+        red_cutout = self.blind_cutout(red_fn)
+        green_cutout = self.blind_cutout(green_fn)
+        blue_cutout = self.blind_cutout(blue_fn)
 
         ww = red_cutout.wcs
 
@@ -73,10 +73,10 @@ class Cutout:
         ]).swapaxes(0,2).swapaxes(0,1)
 
         rgb_scaled = np.array([
-                simple_norm(rgb[:,:,0], stretch='asinh', vmin=-1, vmax=rmax)(rgb[:,:,0]),
-                simple_norm(rgb[:,:,1], stretch='asinh', vmin=-2, vmax=gmax)(rgb[:,:,1]),
-                simple_norm(rgb[:,:,2], stretch='asinh', vmin=-1, vmax=bmax)(rgb[:,:,2]),
-            ]).swapaxes(0,2)
+                simple_norm(rgb[:,:,0], stretch='asinh', vmin=0, vmax=rmax)(rgb[:,:,0]),
+                simple_norm(rgb[:,:,1], stretch='asinh', vmin=0, vmax=gmax)(rgb[:,:,1]),
+                simple_norm(rgb[:,:,2], stretch='asinh', vmin=0, vmax=bmax)(rgb[:,:,2]),
+            ]).swapaxes(0,2).swapaxes(0,1)
 
         return rgb_scaled, ww
 
