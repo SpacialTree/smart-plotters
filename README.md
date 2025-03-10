@@ -5,3 +5,4 @@ This repository contains code for quickly plotting and creating images using ast
 ## Tutorials
 - Using [Cutout](https://github.com/SpacialTree/smart-plotters/blob/main/tutorials/tutorial_cutouts.ipynb) to use Cutout2D to efficiently make cutouts of images and create three-color images.
 - [Cross-matching catalogs](https://github.com/SpacialTree/smart-plotters/blob/main/tutorials/tutorial_catalog_matching.ipynb)
+- [Outflow plots](https://github.com/SpacialTree/smart-plotters/blob/main/tutorials/tutorial_outflows.ipynb)
