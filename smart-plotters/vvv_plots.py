@@ -33,8 +33,8 @@ class VVVCatalog(Plotter):
             suffix = 'mag3'
             boo = check_suffix(suffix)
         if not boo:
-            print(f'No valid suffix found in catalog columns: {self.catalog.colnames}')
-            raise ValueError(f'No valid suffix found in catalog columns. Expected to find -1ap1, -mag or -mag3.')
+            print(f'No valid suffix among -1ap1, -mag, -mag3 found in catalog columns: {self.catalog.colnames}')
+            suffix = ''
             
         self.suffix = suffix
 
