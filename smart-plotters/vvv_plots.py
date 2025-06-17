@@ -24,8 +24,30 @@ class VVVCatalog(Plotter):
         self.ra = self.coords.ra
         self.dec = self.coords.dec
 
+        suffix = '1ap1'
+        boo = check_suffix(suffix)
+        if not boo:
+            suffix = 'mag'
+            boo = check_suffix(suffix)
+        if not boo:
+            suffix = 'mag3'
+            boo = check_suffix(suffix)
+        if not boo:
+            print(f'No valid suffix found in catalog columns: {self.catalog.colnames}')
+            raise ValueError(f'No valid suffix found in catalog columns. Expected to find -1ap1, -mag or -mag3.')
+            
+        self.suffix = suffix
+
     def band(self, band): # J, H, Ks, Y, Z
-        return self.catalog[f'{band}1ap1']
+        return self.catalog[f'{band}{self.suffix}']
 
     def color(self, band1, band2):
         return self.band(band1) - self.band(band2)
+
+def check_suffix(suffix):
+    boo = False
+    for colname in self.catalog.colnames:
+        if colname.endswith(suffix): 
+            boo = True
+            break
+    return boo
