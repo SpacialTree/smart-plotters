@@ -57,6 +57,8 @@ class OutflowPlot:
         else:
             self.reg = regions.RectangleSkyRegion(position, self.l, self.w)
 
+        self.subcube = self.get_subcube()
+
     def open_cube(self):
         """ 
         Open the spectral cube file and return the cube object.
@@ -86,8 +88,7 @@ class OutflowPlot:
         vmax : astropy.units.Quantity
             Maximum velocity of the slab.
         """
-        subcube = self.get_subcube()
-        slab = subcube.spectral_slab(vmin, vmax)
+        slab = self.subcube.spectral_slab(vmin, vmax)
         return slab
 
     def get_moment0(self, vmin=None, vmax=None):
