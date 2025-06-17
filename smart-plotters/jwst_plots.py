@@ -37,6 +37,14 @@ class JWSTCatalog(Plotter):
     def eflux(self, band):
         return self.catalog[f'eflux_jy_{band.lower()}']
 
+    def plot_position(self, ax=None, **kwargs):
+        if ax is None:
+            ax = plt.gca()
+        ax.scatter(self.ra, self.dec, **kwargs)
+        ax.set_xlabel('Right Ascension')
+        ax.set_ylabel('Declination')
+        return ax
+
     def plot_band_histogram(self, band, min=None, max=None, num=50, ax=None, **kwargs):
         if ax is None:
             ax = plt.gca()
@@ -63,20 +71,7 @@ class JWSTCatalog(Plotter):
         return (self.color(band1, band2)) / (ext(int(band1[1:-1])/100*u.um) - ext(int(band2[1:-1])/100*u.um))
 
     def get_qf_mask(self, qf=0.4):
-        #mas_405 = np.logical_or(np.array(self.catalog['qfit_f405n'])<qf, np.isnan(np.array(self.catalog['mag_ab_f405n'])))
-        #mas_410 = np.logical_or(np.array(self.catalog['qfit_f410m'])<qf, np.isnan(np.array(self.catalog['mag_ab_f410m'])))
-        #mask = np.logical_and(mas_405, mas_410)
-        #mas_466 = np.logical_or(np.array(self.catalog['qfit_f466n'])<qf, np.isnan(np.array(self.catalog['mag_ab_f466n'])))
-        #mask = np.logical_and(mask, mas_466)
-        #mas_187 = np.logical_or(np.array(self.catalog['qfit_f187n'])<qf, np.isnan(np.array(self.catalog['mag_ab_f187n'])))
-        #mask = np.logical_and(mask, mas_187)
-        #mas_182 = np.logical_or(np.array(self.catalog['qfit_f182m'])<qf, np.isnan(np.array(self.catalog['mag_ab_f182m'])))
-        #mask = np.logical_and(mask, mas_182)
-        #mas_212 = np.logical_or(np.array(self.catalog['qfit_f212n'])<qf, np.isnan(np.array(self.catalog['mag_ab_f212n'])))
-        #mask = np.logical_and(mask, mas_212)
         bands = self.get_band_names()
-        #[colname[-5:] for colname in self.catalog.colnames if colname.startswith(f'qfit_')]
-        #mask = np.array([np.logical_or(np.array(self.catalog[f'qfit_{band}']) < qf, np.isnan(np.array(self.catalog[f'mag_ab_{band}']))) for band in bands])
         mask = np.logical_and.reduce([np.logical_or(np.array(self.catalog[f'qfit_{band}']) < qf, np.isnan(np.array(self.catalog[f'mag_ab_{band}']))) for band in bands])
 
         return mask
@@ -97,6 +92,16 @@ class JWSTCatalog(Plotter):
         mask = mask.max(axis=0)
         return mask
 
+    def get_region_mask(self, reg, wcs):
+        mask = np.zeros(len(self.catalog), dtype=bool)
+        for r in reg:
+            mask += r.contains(self.coords, wcs=wcs)
+        return mask
+
+    def table_region_mask(self, reg, wcs):
+        mask = self.get_region_mask(reg, wcs)
+        return self.catalog[mask]
+
     def apply_mask(self, mask):
         return self.catalog[mask]
 
@@ -107,6 +112,14 @@ class JWSTCatalog(Plotter):
             combine_mask += ~np.isnan(self.catalog[f'mag_ab_{band}'])
 
         return combine_mask > 1
+
+    def get_all_filters_mask(self):
+        # Mask for detection in all filters
+        combine_mask = np.zeros(len(self.catalog), dtype=int)
+        for band in self.get_band_names():
+            combine_mask += ~np.isnan(self.catalog[f'mag_ab_{band}'])
+
+        return combine_mask == len(self.get_band_names())
 
 
 def make_cat_use(basepath = '/orange/adamginsburg/jwst/cloudc/'):
@@ -133,6 +146,39 @@ def make_cat_use(basepath = '/orange/adamginsburg/jwst/cloudc/'):
     mask = np.logical_and(mask_qf, mask_count)
     mask = np.logical_and(mask, mask_brights)
     mask = np.logical_and(mask, mask_multi)
+
+    # Return catalog with quality factor mask
+    cat_use = JWSTCatalog(basetable[mask])
+    return cat_use
+
+def make_cat_refined(basepath='/orange/adamginsburg/jwst/cloudc/'):
+    # Open catalog file
+    cat_fn = f'{basepath}/catalogs/basic_merged_indivexp_photometry_tables_merged.fits'
+    basetable = Table.read(cat_fn)
+
+    # Create JWSTCatalog object
+    base_jwstcatalog = JWSTCatalog(basetable)
+
+    # Mask for quality factor
+    mask_qf = base_jwstcatalog.get_qf_mask(0.4)
+
+    # Mask for count
+    mask_count = base_jwstcatalog.get_count_mask()
+
+    # Mask for bad bright stars
+    mask_brights = base_jwstcatalog.get_brights_mask()
+
+    # Mask for detections in more than one band
+    mask_multi = base_jwstcatalog.get_multi_detection_mask()
+
+    # Mask for detection in all filters
+    mask_all_filters = base_jwstcatalog.get_all_filters_mask()
+
+    # Combine Masks
+    mask = np.logical_and(mask_qf, mask_count)
+    mask = np.logical_and(mask, mask_brights)
+    mask = np.logical_and(mask, mask_multi)
+    mask = np.logical_and(mask, mask_all_filters)
 
     # Return catalog with quality factor mask
     cat_use = JWSTCatalog(basetable[mask])
