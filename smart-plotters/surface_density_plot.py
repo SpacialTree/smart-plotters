@@ -38,8 +38,18 @@ def fill_grid(grid, data, value):
         grid[y, x] = value[i]
     return grid
 
-def interpolate_grid(grid, fwhm):
-    kernel = Gaussian2DKernel(fwhm)
+def get_grid_mask(cat, shape, wcs, k=5):
+    grid = make_grid(shape)
+
+    data = get_pixcoords(cat, wcs)
+    seps, inds = make_kdtree(data, k=k)
+
+    grid = fill_grid(grid, data, np.ones(len(cat.catalog)))
+    grid_bool = ~np.isnan(grid)
+    return grid_bool
+
+def interpolate_grid(grid, stdev):
+    kernel = Gaussian2DKernel(stdev, x_size=12*stdev+1, y_size=12*stdev+1)
     grid = convolve_fft(grid, kernel, nan_treatment='interpolate')
     return grid
 
@@ -67,7 +77,7 @@ def gutermuth_stellar_density(cat, shape, wcs, k=5):
     grid = stellar_separation(cat, shape, wcs, k=5)
     return (k-1)/(np.pi*grid**2)
 
-def extinction_map(cat, Av, shape, wcs, fwhm=30, k=5, mask=None, Av_const=0):
+def extinction_map(cat, Av, shape, wcs, fwhm=30, k=5, mask=None):
     grid = make_grid(shape)
     pixel_scale = wcs.proj_plane_pixel_scales()[0] * u.deg.to(u.arcsec)
 
@@ -81,7 +91,6 @@ def extinction_map(cat, Av, shape, wcs, fwhm=30, k=5, mask=None, Av_const=0):
 
     grid = interpolate_grid(grid, fwhm)
 
-    grid = grid - Av_const
     grid[grid < 0] = np.nan
 
     return grid
