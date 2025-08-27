@@ -70,6 +70,22 @@ class JWSTCatalog(Plotter):
     def get_Av(self, band1, band2, ext=CT06_MWGC()):
         return (self.color(band1, band2)) / (ext(int(band1[1:-1])/100*u.um) - ext(int(band2[1:-1])/100*u.um))
 
+    def plot_extinction_vector(band1, band2, band3, band4, ax=None, ext=CT06_MWLoc(), scale=200, start=(0,0), color='k', head_width=0.1, **kwargs):
+        if ax is None:
+            ax = plt.gca()
+        w1 = int(band1[1:-1])/100*u.um
+        w2 = int(band2[1:-1])/100*u.um
+        w3 = int(band3[1:-1])/100*u.um
+        w4 = int(band4[1:-1])/100*u.um
+        e_1 = ext(w1) * scale
+        e_2 = ext(w2) * scale
+        e_3 = ext(w3) * scale
+        e_4 = ext(w4) * scale
+        #ax.arrow(start[0], start[1], e_1-e_2, e_3-e_4, color=color, head_width=head_width, label=f'$A_V={scale}$', **kwargs)
+        ax.annotate("", xytext=start, xy=(start[0] + e_1 - e_2, start[1] + e_3 - e_4),
+                    arrowprops=dict(arrowstyle="->", color=color, lw=2, **kwargs),
+                    label=f'$A_V={scale}$')
+
     def get_qf_mask(self, qf=0.4):
         bands = self.get_band_names()
         mask = np.logical_and.reduce([np.logical_or(np.array(self.catalog[f'qfit_{band}']) < qf, np.isnan(np.array(self.catalog[f'mag_ab_{band}']))) for band in bands])
