@@ -7,7 +7,7 @@ from astropy.coordinates import SkyCoord
 from astropy.table import Table
 import regions
 from regions import Regions
-from spectral_cube import SpectralCube
+from spectral_cube import SpectralCube, Projection
 
 default_fn = '/orange/adamginsburg/jwst/cloudc/alma/ACES/uid___A001_X15a0_X1a8.s38_0.Sgr_A_star_sci.spw27.cube.I.iter1.image.pbcor.fits'
 default_restfreq = 86.84696*u.GHz # ACES SiO 2-1
@@ -57,7 +57,7 @@ class OutflowPlot:
         else:
             self.reg = regions.RectangleSkyRegion(position, self.l, self.w)
 
-        self.subcube = self.get_subcube()
+        #self.subcube = self.get_subcube()
 
     def open_cube(self):
         """ 
@@ -77,6 +77,26 @@ class OutflowPlot:
             subcube = cube.subcube_from_regions([self.reg])
         return subcube
 
+    def get_subimage(self, vmin=None, vmax=None):
+        """ 
+        Extract the 2D image defined by the region.
+        """
+        subcube = self.get_spectral_slab(vmin, vmax)
+        mom0 = subcube.moment0()
+        if isinstance(self.reg, list) or isinstance(self.reg, Regions):
+            #subcube = cube.subcube_from_regions(self.reg)
+            reg = self.reg[0]
+            for r in self.reg[0:]:
+                reg = reg.union(r)
+        mask = reg.to_pixel(mom0.wcs).to_mask()
+        slc_lg, slc_sm = mask.get_overlap_slices(mom0.data.shape)
+        ww_sl = mom0.wcs[slc_lg]
+        masked_mom0 = mask.multiply(mom0.data)
+        masked_mom0[masked_mom0==0] = np.nan
+        subimage = Projection(value=masked_mom0, unit=mom0.unit, wcs=ww_sl)
+
+        return subimage
+
     def get_spectral_slab(self, vmin, vmax):
         """ 
         Extract a spectral slab from the cube.
@@ -88,7 +108,13 @@ class OutflowPlot:
         vmax : astropy.units.Quantity
             Maximum velocity of the slab.
         """
-        slab = self.subcube.spectral_slab(vmin, vmax)
+        cube = self.open_cube()
+        if vmin is not None and vmax is not None:
+            slab = cube.spectral_slab(vmin, vmax)
+        elif vmin is not None or vmax is not None:
+            raise ValueError("Both vmin and vmax must be provided.")
+        else:
+            slab = cube
         return slab
 
     def get_moment0(self, vmin=None, vmax=None):
@@ -102,14 +128,9 @@ class OutflowPlot:
         vmax : astropy.units.Quantity, optional
             Maximum velocity of the slab.
         """
-        if vmin is not None and vmax is not None:
-            slab = self.get_spectral_slab(vmin, vmax)
-            return slab.moment0()
-        elif vmin is not None or vmax is not None:
-            raise ValueError("Both vmin and vmax must be provided.")
-        else:
-            subcube = self.get_subcube()
-            return subcube.moment0()
+        
+        slab = self.get_spectral_slab(vmin, vmax)
+        return slab.moment0()
 
     def plot_moment0(self, vmin=None, vmax=None, ax=None, **kwargs):
         """ 
@@ -316,3 +337,4 @@ def quickplot_ACES(line, position, l=5*u.arcsec, w=5*u.arcsec, reg=None):
 
     op = OutflowPlot(position, l=l, w=w, reg=reg, cube_fn=cube_fn, restfreq=restfreq)
     return op
+
