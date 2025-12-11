@@ -24,13 +24,15 @@ class JWSTCatalog(Plotter):
         self.dec = self.coords.dec
 
     def band(self, band):
-        return self.catalog[f'mag_ab_{band.lower()}']
+        return np.array(self.catalog[f'mag_ab_{band.lower()}'])
 
     def get_band_names(self):
         return [colname[-5:] for colname in self.catalog.colnames if colname.startswith('qfit_')]
 
     def color(self, band1, band2):
-        return self.catalog[f'mag_ab_{band1.lower()}'] - self.catalog[f'mag_ab_{band2.lower()}']
+        band1_mag = self.catalog[f'mag_ab_{band1.lower()}']
+        band2_mag = self.catalog[f'mag_ab_{band2.lower()}']
+        return np.subtract(band1_mag, band2_mag)
 
     def flux(self, band):
         return self.catalog[f'flux_jy_{band.lower()}']
@@ -70,6 +72,9 @@ class JWSTCatalog(Plotter):
     
     def get_Av(self, band1, band2, ext=CT06_MWGC()):
         return (self.color(band1, band2)) / (ext(int(band1[1:-1])/100*u.um) - ext(int(band2[1:-1])/100*u.um))
+
+    def get_avg_Av(self, ext=CT06_MWGC()):
+        return avg_Av(self, ext=ext)
 
     def plot_extinction_vector(band1, band2, band3, band4, ax=None, ext=CT06_MWLoc(), scale=200, start=(0,0), color='k', head_width=0.1, **kwargs):
         if ax is None:
@@ -236,3 +241,25 @@ def make_brick_cat():
     # Return catalog with quality factor mask
     cat_use = JWSTCatalog(basetable[mask])
     return cat_use
+
+def avg_Av(cat, ext=CT06_MWGC()):
+    # F182M - F212N
+    Av_182212 = cat.get_Av('F182M', 'F212N', ext=ext)
+    # F182M - F410M
+    #Av_182410 = cat.get_Av('F182M', 'F410M', ext=ext)
+    # F182M - F405N 
+    Av_182405 = cat.get_Av('F182M', 'F405N', ext=ext)
+    # F187N - F212N 
+    Av_187212 = cat.get_Av('F187N', 'F212N', ext=ext)
+    # F187N - F410M
+    #Av_187410 = cat.get_Av('F187N', 'F410M', ext=ext)
+    # F187N - F405N
+    Av_187405 = cat.get_Av('F187N', 'F405N', ext=ext)
+    # F212N - F410M
+    #Av_212410 = cat.get_Av('F212N', 'F410M', ext=ext)
+    # F212N - F405N
+    Av_212405 = cat.get_Av('F212N', 'F405N', ext=ext)
+
+    Avs = np.array([Av_182212, Av_182405, Av_187212, Av_187405, Av_212405])
+    avg_Av = np.nanmean(Avs, axis=0)
+    return avg_Av
