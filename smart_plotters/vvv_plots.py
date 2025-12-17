@@ -7,7 +7,8 @@ from astropy.visualization import simple_norm
 from astropy.nddata import Cutout2D
 from astropy.io import fits
 from astropy.table import Table
-from cmd_plot import Plotter
+#from cmd_plot import Plotter
+from smart_plotters.cmd_plot import Plotter
 import regions
 from regions import Regions
 from astroquery.svo_fps import SvoFps
