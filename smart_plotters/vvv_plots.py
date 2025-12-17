@@ -12,6 +12,8 @@ import regions
 from regions import Regions
 from astroquery.svo_fps import SvoFps
 from dust_extinction.averages import CT06_MWGC
+from astroquery.vizier import Vizier
+
 
 basepath = '/orange/adamginsburg/jwst/cloudc/'
 
@@ -51,3 +53,10 @@ def check_suffix(suffix):
             boo = True
             break
     return boo
+
+def make_vvv_cat(pos=SkyCoord('17:46:20.6290029866', '-28:37:49.5114204513', unit=(u.hour, u.deg)), l=113.8*u.arcsec, w=3.3*u.arcmin):
+    reg = regions.RectangleSkyRegion(pos, width=l, height=w)
+    Vizier.ROW_LIMIT = 5e5
+    cat_VVV = Vizier.query_region(coordinates=pos, width=l, height=w, catalog=['II/387/virac2'])[0]
+    vvv_cat = VVVCatalog(cat_VVV)
+    return vvv_cat
