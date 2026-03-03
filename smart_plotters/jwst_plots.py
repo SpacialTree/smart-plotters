@@ -22,6 +22,7 @@ class JWSTCatalog(Plotter):
         self.coords = self.catalog['skycoord_ref']
         self.ra = self.coords.ra
         self.dec = self.coords.dec
+        self.filters = self.get_band_names()
 
     def band(self, band):
         return np.array(self.catalog[f'mag_ab_{band.lower()}'])
@@ -30,8 +31,8 @@ class JWSTCatalog(Plotter):
         return [colname[-5:] for colname in self.catalog.colnames if colname.startswith('qfit_')]
 
     def color(self, band1, band2):
-        band1_mag = self.catalog[f'mag_ab_{band1.lower()}']
-        band2_mag = self.catalog[f'mag_ab_{band2.lower()}']
+        band1_mag = self.band(band1)
+        band2_mag = self.band(band2)
         return np.subtract(band1_mag, band2_mag)
 
     def flux(self, band):
@@ -44,8 +45,8 @@ class JWSTCatalog(Plotter):
         if ax is None:
             ax = plt.gca()
         ax.scatter(self.ra, self.dec, **kwargs)
-        ax.set_xlabel('Right Ascension')
-        ax.set_ylabel('Declination')
+        #ax.set_xlabel('Declination')
+        #ax.set_ylabel('Right Ascension')
         return ax
 
     def plot_band_histogram(self, band, min=None, max=None, num=50, ax=None, **kwargs):
@@ -147,6 +148,7 @@ class JWSTCatalog(Plotter):
 def make_cat_use(basepath = '/orange/adamginsburg/jwst/cloudc/'):
     # Open catalog file
     cat_fn = f'{basepath}/catalogs/basic_merged_indivexp_photometry_tables_merged.fits'
+    #f'{basepath}/catalogs/basic_merged_indivexp_photometry_tables_merged_12182025.fits'
     basetable = Table.read(cat_fn)
 
     # Create JWSTCatalog object
