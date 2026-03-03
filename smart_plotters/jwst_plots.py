@@ -25,7 +25,13 @@ class JWSTCatalog(Plotter):
         self.filters = self.get_band_names()
 
     def band(self, band):
-        return np.array(self.catalog[f'mag_ab_{band.lower()}'])
+        try: 
+            return np.array(self.catalog[f'mag_ab_{band.lower()}'])
+        except KeyError:
+            try:
+                return np.array(self.catalog[f'mag_vega_{band.lower()}'])
+            except KeyError:
+                raise KeyError(f"Band {band} not found in catalog. Available bands: {self.get_band_names()}")
 
     def get_band_names(self):
         return [colname[-5:] for colname in self.catalog.colnames if colname.startswith('qfit_')]
