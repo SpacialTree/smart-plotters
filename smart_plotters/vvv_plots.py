@@ -28,13 +28,13 @@ class VVVCatalog(Plotter):
         self.dec = self.coords.dec
 
         suffix = '1ap1'
-        boo = check_suffix(suffix)
+        boo = self.check_suffix(suffix)
         if not boo:
             suffix = 'mag'
-            boo = check_suffix(suffix)
+            boo = self.check_suffix(suffix)
         if not boo:
             suffix = 'mag3'
-            boo = check_suffix(suffix)
+            boo = self.check_suffix(suffix)
         if not boo:
             print(f'No valid suffix among -1ap1, -mag, -mag3 found in catalog columns: {self.catalog.colnames}')
             suffix = ''
@@ -47,13 +47,13 @@ class VVVCatalog(Plotter):
     def color(self, band1, band2):
         return self.band(band1) - self.band(band2)
 
-def check_suffix(suffix):
-    boo = False
-    for colname in self.catalog.colnames:
-        if colname.endswith(suffix): 
-            boo = True
-            break
-    return boo
+    def check_suffix(self, suffix):
+        boo = False
+        for colname in self.catalog.colnames:
+            if colname.endswith(suffix): 
+                boo = True
+                break
+        return boo
 
 def make_vvv_cat(pos=SkyCoord('17:46:20.6290029866', '-28:37:49.5114204513', unit=(u.hour, u.deg)), l=113.8*u.arcsec, w=3.3*u.arcmin):
     reg = regions.RectangleSkyRegion(pos, width=l, height=w)
