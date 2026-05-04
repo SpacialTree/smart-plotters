@@ -26,10 +26,19 @@ class JWSTCatalog(Plotter):
 
     def band(self, band):
         try: 
-            return np.array(self.catalog[f'mag_ab_{band.lower()}'])
+            return self.catalog[f'mag_vega_{band.lower()}']
         except KeyError:
             try:
-                return np.array(self.catalog[f'mag_vega_{band.lower()}'])
+                return self.catalog[f'mag_ab_{band.lower()}']
+            except KeyError:
+                raise KeyError(f"Band {band} not found in catalog. Available bands: {self.get_band_names()}")
+
+    def emag(self, band):
+        try: 
+            return self.catalog[f'emag_vega_{band.lower()}']
+        except KeyError:
+            try:
+                return self.catalog[f'emag_ab_{band.lower()}']
             except KeyError:
                 raise KeyError(f"Band {band} not found in catalog. Available bands: {self.get_band_names()}")
 
@@ -110,10 +119,10 @@ class JWSTCatalog(Plotter):
         return self.catalog[mask]
 
     def get_brights_mask(self):
-        mask_187 = np.logical_and(self.catalog['mag_ab_f187n'] < 15, self.color('F187N', 'F182M') < -0.3)
-        mask = np.logical_or(~mask_187, np.isnan(np.array(self.catalog['mag_ab_f187n'])))
-        mask_405 = np.logical_and(self.catalog['mag_ab_f405n'] < 13.5, self.color('F405N', 'F410M') < -0.3)
-        mask &= np.logical_or(~mask_405, np.isnan(np.array(self.catalog['mag_ab_f405n'])))
+        mask_187 = np.logical_and(self.band('f187n') < 15, self.color('F187N', 'F182M') < -0.3)
+        mask = np.logical_or(~mask_187, np.isnan(np.array(self.band('f187n'))))
+        mask_405 = np.logical_and(self.band('f405n') < 13.5, self.color('F405N', 'F410M') < -0.3)
+        mask &= np.logical_or(~mask_405, np.isnan(np.array(self.band('f405n'))))
         return mask
 
     def get_count_mask(self, err=0.05):
@@ -146,15 +155,16 @@ class JWSTCatalog(Plotter):
         # Mask for detection in all filters
         combine_mask = np.zeros(len(self.catalog), dtype=int)
         for band in self.get_band_names():
-            combine_mask += ~np.isnan(self.catalog[f'mag_ab_{band}'])
+            combine_mask += ~np.isnan(self.band(band))
 
         return combine_mask == len(self.get_band_names())
 
 
 def make_cat_use(basepath = '/orange/adamginsburg/jwst/cloudc/'):
     # Open catalog file
-    cat_fn = f'{basepath}/catalogs/basic_merged_indivexp_photometry_tables_merged.fits'
-    #f'{basepath}/catalogs/basic_merged_indivexp_photometry_tables_merged_12182025.fits'
+    #cat_fn = f'{basepath}/catalogs/basic_merged_indivexp_photometry_tables_merged.fits'
+    #cat_fn = f'{basepath}/catalogs/iterative_merged_indivexp_photometry_tables_merged.fits'
+    cat_fn = f'{basepath}/catalogs/basic_merged_indivexp_photometry_tables_merged_12182025.fits'
     basetable = Table.read(cat_fn)
 
     # Create JWSTCatalog object
@@ -222,7 +232,9 @@ def make_cat_raw(basepath='/orange/adamginsburg/jwst/cloudc/'):
 
 def make_brick_cat():
     #basepath = '/orange/adamginsburg/jwst/brick/'
-    cat_fn = '/orange/adamginsburg/jwst/brick/catalogs/basic_merged_indivexp_photometry_tables_merged_qualcuts_oksep2221.fits'
+    # /orange/adamginsburg/jwst/brick/catalogs/iterative_merged_indivexp_photometry_tables_merged_qualcuts_oksep2221.fits
+    cat_fn = '/orange/adamginsburg/jwst/brick/catalogs/final/basic_merged_indivexp_photometry_tables_merged_qualcuts_oksep2221.fits'
+    #cat_fn = '/orange/adamginsburg/jwst/brick/catalogs/iterative_merged_indivexp_photometry_tables_merged_qualcuts_oksep2221.fits'
     print(f"Reading {cat_fn}")
     basetable = Table.read(cat_fn)
 
