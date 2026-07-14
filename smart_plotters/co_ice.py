@@ -31,11 +31,11 @@ import smart_plotters.surface_density_plot as utils
 
 from brick2221.analysis.analysis_setup import basepath, molscomps
 
-def compute_molecular_column(unextincted_466m410, dmag_tbl, icemol='CO', ref_band='f410m'):
+def compute_molecular_column(unextincted_466m410, dmag_tbl, icemol='CO', ref_band='f405n'):
     dmags466 = dmag_tbl['F466N']
     dmags410 = dmag_tbl[ref_band.upper()]
 
-    comp = np.unique(dmag_tbl['composition'])[0]
+    comp = "H2O:CO:CO2 (10:1:1)"#np.unique(dmag_tbl['composition'])[0]
     molwt = u.Quantity(composition_to_molweight(comp), u.Da)
     mols, comps = molscomps(comp)
     mol_frac = comps[mols.index(icemol)] / sum(comps)
@@ -59,14 +59,14 @@ def unextinct(cat, ext, band1, band2, Av):
     EV_band2_band1 = (ext(int(band2[1:-1])/100*u.um) - ext(int(band1[1:-1])/100*u.um))
     return cat.color(band1, band2) + EV_band2_band1 * Av
 
-def get_co_ice_column(cat, av, ext=CT06_MWLoc(), ref_band='f410m'):
+def get_co_ice_column(cat, av, ext=CT06_MWLoc(), ref_band='f405n'):
     unextincted_466mref = unextinct(cat, ext=ext, band1='f466n', band2=ref_band, Av=av)
     dmag_tbl = get_dmag_tbl()
     dmag_tbl_sel = dmag_tbl.loc['H2O:CO:CO2 (10:1:1)']
 
     return compute_molecular_column(unextincted_466mref, dmag_tbl_sel, icemol='CO', ref_band=ref_band)
 
-def co_ice_modeling(ref_band='f410m', consts_file='1_CO_(1)_12.5K_Baratta.txt'):
+def co_ice_modeling(ref_band='f405n', consts_file='1_CO_(1)_12.5K_Baratta.txt'):
     
     filter_data = SvoFps.get_filter_list('JWST', instrument="NIRCam")
     filter_data.add_index('filterID')
@@ -130,7 +130,7 @@ def co_ice_modeling(ref_band='f410m', consts_file='1_CO_(1)_12.5K_Baratta.txt'):
     return dmag_466m410, cols
 
 
-def get_co_column_old(cat, Av, ext=CT06_MWLoc(), ref_band='f410m', consts_file='1_CO_(1)_12.5K_Baratta.txt'):
+def get_co_column_old(cat, Av, ext=CT06_MWLoc(), ref_band='f405n', consts_file='1_CO_(1)_12.5K_Baratta.txt'):
     #if ref_band not in ['f410m', 'f405n']:
     #    raise ValueError(f"ref_band must be either 'f410m' or 'f405n', not {ref_band}")
 

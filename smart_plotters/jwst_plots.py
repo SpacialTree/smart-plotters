@@ -19,9 +19,14 @@ class JWSTCatalog(Plotter):
         super().__init__()
         self.catalog = catalog
 
-        self.coords = self.catalog['skycoord_ref']
-        self.ra = self.coords.ra
-        self.dec = self.coords.dec
+        try: 
+            self.coords = self.catalog['skycoord_ref']
+            self.ra = self.coords.ra
+            self.dec = self.coords.dec
+        except KeyError:
+            self.coords = SkyCoord(ra=self.catalog['ra']*u.deg, dec=self.catalog['dec']*u.deg)
+            self.ra = self.catalog['ra']
+            self.dec = self.catalog['dec']
         self.filters = self.get_band_names()
 
     def band(self, band):
@@ -191,6 +196,44 @@ def make_cat_use(basepath = '/orange/adamginsburg/jwst/cloudc/'):
     cat_use = JWSTCatalog(basetable[mask])
     return cat_use
 
+def make_cat_sat(basepath='/orange/adamginsburg/jwst/cloudc/'):
+    # Open catalog file
+    cat_fn = f'{basepath}/catalogs/basic_merged_indivexp_photometry_tables_merged_resbgsub_m7_qualcuts_oksep2221.fits'
+    # f'{basepath}/catalogs/iterative_merged_indivexp_photometry_tables_merged.fits'
+    # cat_fn = f'{basepath}/catalogs/iterative_merged_indivexp_photometry_tables_merged_iter3_qualcuts_oksep2221.fits'
+    basetable = Table.read(cat_fn)
+
+    base_jwstcatalog = JWSTCatalog(basetable)
+
+    mask_qf = base_jwstcatalog.get_qf_mask(0.4)
+    mask_count = base_jwstcatalog.get_count_mask(err=0.1)
+    mask_multi = base_jwstcatalog.get_multi_detection_mask()
+
+    # Combine Masks
+    mask = np.logical_and(mask_qf, mask_count)
+    mask = np.logical_and(mask, mask_multi)
+
+    cat_use = JWSTCatalog(basetable[mask])
+    return cat_use
+
+def make_cat_basic(basepath='/orange/adamginsburg/jwst/cloudc/'):
+    # Open catalog file
+    cat_fn = f'{basepath}/catalogs/basic_merged_indivexp_photometry_tables_merged.fits'
+    basetable = Table.read(cat_fn)
+    base_jwstcatalog = JWSTCatalog(basetable)
+
+    mask_qf = base_jwstcatalog.get_qf_mask(0.4)
+    mask_count = base_jwstcatalog.get_count_mask(err=0.05)
+    mask_multi = base_jwstcatalog.get_multi_detection_mask()
+
+    # Combine Masks
+    mask = np.logical_and(mask_qf, mask_count)
+    mask = np.logical_and(mask, mask_multi)
+
+    cat_use = JWSTCatalog(basetable[mask])
+
+    return cat_use
+
 def make_cat_refined(basepath='/orange/adamginsburg/jwst/cloudc/'):
     # Open catalog file
     cat_fn = f'{basepath}/catalogs/basic_merged_indivexp_photometry_tables_merged.fits'
@@ -283,3 +326,27 @@ def avg_Av(cat, ext=CT06_MWGC()):
     Avs = np.array([Av_182212, Av_182405, Av_187212, Av_187405, Av_212405])
     avg_Av = np.nanmean(Avs, axis=0)
     return avg_Av
+
+def get_rc_sel_mask(cat):
+    x = np.linspace(0, 2.5, 10)
+    
+    x0 = 0.52
+    mask_x0_left = cat.color('f182m', 'f212n') > x0
+
+    y0 = 14.8
+    mask_above_y0 = cat.band('f182m') > y0
+    mask_rc = mask_above_y0 & mask_x0_left
+
+    pt1 = (0.5, 14.3)
+    pt2 = (2.0, 20.)
+    y1 = (pt2[1] - pt1[1]) / (pt2[0] - pt1[0]) * (x - pt1[0]) + pt1[1]
+    mask_below_y1 = cat.band('f182m') > ( (pt2[1] - pt1[1]) / (pt2[0] - pt1[0]) * (cat.color('f182m', 'f212n') - pt1[0]) + pt1[1] )
+    mask_rc = mask_below_y1 & mask_rc
+
+    pt1 = (0.5, 15.5)
+    pt2 = (2.0, 20.9)
+    y2 = (pt2[1] - pt1[1]) / (pt2[0] - pt1[0]) * (x - pt1[0]) + pt1[1]
+    mask_above_y2 = cat.band('f182m') < ( (pt2[1] - pt1[1]) / (pt2[0] - pt1[0]) * (cat.color('f182m', 'f212n') - pt1[0]) + pt1[1] )
+    mask_rc = mask_rc & mask_above_y2
+
+    return mask_rc
