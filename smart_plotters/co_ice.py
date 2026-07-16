@@ -23,13 +23,14 @@ imp.reload(icemodels)
 from icemodels import absorbed_spectrum, absorbed_spectrum_Gaussians, convsum, fluxes_in_filters, load_molecule, load_molecule_ocdb, atmo_model, molecule_data
 from icemodels.gaussian_model_components import co_ice_wls_icm, co_ice_wls, co_ice_widths, co_ice_bandstrength
 from icemodels.core import optical_constants_cache_dir, read_ocdb_file, download_all_ocdb, composition_to_molweight, read_lida_file
+from icemodels.core import molscomps
 
 from astroquery.svo_fps import SvoFps
 from astropy import table
 
 import smart_plotters.surface_density_plot as utils
 
-from brick2221.analysis.analysis_setup import basepath, molscomps
+# from brick2221.analysis.analysis_setup import molscomps
 
 def compute_molecular_column(unextincted_466m410, dmag_tbl, icemol='CO', ref_band='f405n'):
     dmags466 = dmag_tbl['F466N']
@@ -48,7 +49,8 @@ def compute_molecular_column(unextincted_466m410, dmag_tbl, icemol='CO', ref_ban
     return inferred_molecular_column
 
 def get_dmag_tbl():
-    from brick2221.analysis.analysis_setup import basepath
+    # from brick2221.analysis.analysis_setup import basepath
+    basepath = '/blue/adamginsburg/adamginsburg/jwst/brick/'
     dmag_tbl = Table.read(f'{basepath}/tables/combined_ice_absorption_tables.ecsv')
     dmag_tbl.add_index('composition')
     dmag_tbl.add_index('mol_id')
